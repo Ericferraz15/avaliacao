@@ -2,11 +2,19 @@
 import FiltrableDropdown from "../components/FiltrableDropdown";
 import { FiEdit, FiTrash2, FiPlus } from "react-icons/fi"; // Ícones importados
 
-const permissoes = ["Admin", "Gerente", "Supervisor", "Técnico"];
+const permissoes = ["Administrativo", "Operacional"]; // Updated permissions
 
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([
-    { id: 1, nome: "Admin", email: "admin@valmet.com", permissao: "Admin" },
+    {
+      id: 1,
+      nome: "Admin",
+      email: "admin@valmet.com",
+      permissao: "Administrativo", // Updated default permission
+      password: "",
+      notificarMudancaArea: false,
+      notificarAtraso: false,
+    },
   ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,7 +22,11 @@ export default function Usuarios() {
   const [filter, setFilter] = useState("");
 
   const handleSave = () => {
-    if (editUsuario?.nome.trim() && editUsuario?.email.trim()) {
+    if (
+      editUsuario?.nome.trim() &&
+      editUsuario?.email.trim() &&
+      editUsuario?.password
+    ) {
       if (editUsuario.id) {
         setUsuarios(
           usuarios.map((u) => (u.id === editUsuario.id ? editUsuario : u))
@@ -44,7 +56,14 @@ export default function Usuarios() {
           />
           <button
             onClick={() => {
-              setEditUsuario({ nome: "", email: "", permissao: "Técnico" });
+              setEditUsuario({
+                nome: "",
+                email: "",
+                permissao: "Operacional", // Updated default permission for new users
+                password: "",
+                notificarMudancaArea: false,
+                notificarAtraso: false,
+              });
               setIsModalOpen(true);
             }}
             className="bg-valmet-blue text-white px-4 py-2 rounded h-10 hover:bg-blue-700 flex items-center gap-1"
@@ -171,16 +190,79 @@ export default function Usuarios() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Senha
+                  </label>
+                  <input
+                    type="password"
+                    className="w-full border rounded-md p-2"
+                    value={editUsuario?.password || ""}
+                    onChange={(e) =>
+                      setEditUsuario({
+                        ...editUsuario,
+                        password: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Permissão
                   </label>
                   <FiltrableDropdown
                     options={permissoes}
-                    selected={editUsuario?.permissao || "Técnico"}
+                    selected={editUsuario?.permissao || "Operacional"} // Updated default
                     onSelect={(value) =>
                       setEditUsuario({ ...editUsuario, permissao: value })
                     }
                     className="w-full"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Receber notificações:
+                  </label>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="notificarMudancaArea"
+                      checked={editUsuario?.notificarMudancaArea || false}
+                      onChange={(e) =>
+                        setEditUsuario({
+                          ...editUsuario,
+                          notificarMudancaArea: e.target.checked,
+                        })
+                      }
+                      className="h-4 w-4 text-valmet-blue focus:ring-valmet-blue border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor="notificarMudancaArea"
+                      className="ml-2 block text-sm text-gray-700"
+                    >
+                      Ao mudar de área
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="notificarAtraso"
+                      checked={editUsuario?.notificarAtraso || false}
+                      onChange={(e) =>
+                        setEditUsuario({
+                          ...editUsuario,
+                          notificarAtraso: e.target.checked,
+                        })
+                      }
+                      className="h-4 w-4 text-valmet-blue focus:ring-valmet-blue border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor="notificarAtraso"
+                      className="ml-2 block text-sm text-gray-700"
+                    >
+                      Em caso de atraso
+                    </label>
+                  </div>
                 </div>
               </div>
 
