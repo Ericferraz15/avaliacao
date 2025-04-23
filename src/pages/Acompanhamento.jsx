@@ -37,7 +37,7 @@ const mockData = [
     item: "Eixo Principal",
     dataEntrega: new Date(2025, 4, 5),
     dataReprog: null,
-    status: "em_producao", // Novo campo status
+    status: "em_producao",
     atividades: [
       {
         nome: "Troca de rolamentos",
@@ -55,7 +55,7 @@ const mockData = [
     cliente: "Suzano",
     item: "Caldeira",
     dataEntrega: new Date(2025, 4, 10),
-    dataReprog: new Date(2025, 4, 12), // Alterado para ficar atrasado
+    dataReprog: new Date(2025, 4, 12),
     status: "atrasado",
     atividades: [
       {
@@ -74,7 +74,7 @@ const mockData = [
     cliente: "Eldorado",
     item: "Válvula de Controle",
     dataEntrega: new Date(2025, 4, 15),
-    dataReprog: new Date(2025, 4, 13), // Adiantado
+    dataReprog: new Date(2025, 4, 13),
     status: "em_producao",
     atividades: [
       {
@@ -163,6 +163,7 @@ export default function Acompanhamento() {
 
   const [data, setData] = useState(mockData);
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState("data"); // 'data' ou 'processo'
 
   // Contagem de status
   const statusCounts = data.reduce((acc, item) => {
@@ -183,12 +184,10 @@ export default function Acompanhamento() {
   };
 
   const filteredData = data.filter((item) => {
-    const today = new Date();
     const isAtrasado = item.dataReprog
       ? item.dataReprog > item.dataEntrega
       : false;
 
-    // Verifica se o status atual corresponde ao filtro de status
     const statusMatch =
       filters.status === "" ||
       (filters.status === "atrasado" && isAtrasado) ||
@@ -242,6 +241,33 @@ export default function Acompanhamento() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Acompanhamento de Manutenções</h1>
+
+      {/* Botões de visualização */}
+      <div className="mb-6 flex items-center gap-4">
+        <span className="font-medium">Quebrar por:</span>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setViewMode("data")}
+            className={`px-4 py-2 rounded ${
+              viewMode === "data"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 hover:bg-gray-300"
+            }`}
+          >
+            Data
+          </button>
+          <button
+            onClick={() => setViewMode("processo")}
+            className={`px-4 py-2 rounded ${
+              viewMode === "processo"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 hover:bg-gray-300"
+            }`}
+          >
+            Processo
+          </button>
+        </div>
+      </div>
 
       {/* Resumo de Status */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -299,7 +325,6 @@ export default function Acompanhamento() {
       {showFilters && (
         <div className="bg-gray-50 p-4 rounded-lg mb-6 transition-all duration-300">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
-            {/* Dropdown BU */}
             <div>
               <label className="block text-sm font-medium mb-1">BU</label>
               <select
@@ -316,7 +341,6 @@ export default function Acompanhamento() {
               </select>
             </div>
 
-            {/* Input PCS */}
             <div>
               <label className="block text-sm font-medium mb-1">PCS</label>
               <input
@@ -329,7 +353,6 @@ export default function Acompanhamento() {
               />
             </div>
 
-            {/* Dropdown Cliente */}
             <div>
               <label className="block text-sm font-medium mb-1">Cliente</label>
               <select
@@ -348,7 +371,6 @@ export default function Acompanhamento() {
               </select>
             </div>
 
-            {/* Dropdown Item */}
             <div>
               <label className="block text-sm font-medium mb-1">Item</label>
               <select
@@ -369,7 +391,6 @@ export default function Acompanhamento() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Período */}
             <div>
               <label className="block text-sm font-medium mb-1">Período</label>
               <div className="flex gap-2">
@@ -398,7 +419,6 @@ export default function Acompanhamento() {
               </div>
             </div>
 
-            {/* Dropdown Área */}
             <div>
               <label className="block text-sm font-medium mb-1">Área</label>
               <select
@@ -417,7 +437,6 @@ export default function Acompanhamento() {
               </select>
             </div>
 
-            {/* Dropdown Status */}
             <div>
               <label className="block text-sm font-medium mb-1">Status</label>
               <select
@@ -436,7 +455,6 @@ export default function Acompanhamento() {
               </select>
             </div>
 
-            {/* Botão Limpar */}
             <div className="flex items-end">
               <button
                 className="w-full bg-gray-200 hover:bg-gray-300 p-2 rounded"
@@ -474,130 +492,147 @@ export default function Acompanhamento() {
         </div>
       </div>
 
-      {/* Tabela */}
-      <div className="overflow-x-auto shadow-md rounded-lg">
-        <table className="min-w-full border">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-3 border w-12">#</th>
-              <th className="p-3 border min-w-[120px]">BU</th>
-              <th className="p-3 border min-w-[100px]">PCS</th>
-              <th className="p-3 border min-w-[150px]">Cliente</th>
-              <th className="p-3 border min-w-[180px]">Item</th>
-              <th className="p-3 border min-w-[100px]">Status</th>
-              <th className="p-3 border min-w-[120px]">Data Entrega</th>
-              <th className="p-3 border min-w-[140px]">Reprog.</th>
-              {generateDateColumns().map((date) => (
-                <th
-                  key={date.toString()}
-                  className="p-3 border text-center min-w-[100px]"
-                >
-                  {date.getDate()}/{date.getMonth() + 1}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.map((item, index) => {
-              const isAtrasado = item.dataReprog
-                ? item.dataReprog > item.dataEntrega
-                : false;
-              const currentStatus = isAtrasado ? "atrasado" : item.status;
+      {/* Tabelas condicionais */}
+      {viewMode === "data" ? (
+        /* Tabela por Data */
+        <div className="overflow-x-auto shadow-md rounded-lg">
+          <table className="min-w-full border">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-3 border w-12">#</th>
+                <th className="p-3 border min-w-[120px]">BU</th>
+                <th className="p-3 border min-w-[100px]">PCS</th>
+                <th className="p-3 border min-w-[150px]">Cliente</th>
+                <th className="p-3 border min-w-[180px]">Item</th>
+                <th className="p-3 border min-w-[100px]">Status</th>
+                <th className="p-3 border min-w-[120px]">Data Entrega</th>
+                <th className="p-3 border min-w-[140px]">Reprog.</th>
+                {generateDateColumns().map((date) => (
+                  <th
+                    key={date.toString()}
+                    className="p-3 border text-center min-w-[100px]"
+                  >
+                    {date.getDate()}/{date.getMonth() + 1}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.map((item, index) => {
+                const isAtrasado = item.dataReprog
+                  ? item.dataReprog > item.dataEntrega
+                  : false;
+                const currentStatus = isAtrasado ? "atrasado" : item.status;
 
-              return (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="p-2 border text-center">{index + 1}</td>
-                  <td className="p-2 border">{item.bu}</td>
-                  <td className="p-2 border">{item.pcs}</td>
-                  <td className="p-2 border">{item.cliente}</td>
-                  <td className="p-2 border font-medium">{item.item}</td>
-                  <td className="p-2 border">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${STATUS_COLORS[currentStatus]}`}
-                    >
-                      {STATUS_LABELS[currentStatus]}
-                    </span>
-                  </td>
-                  <td className="p-2 border">{formatDate(item.dataEntrega)}</td>
-                  <td className="p-2 border">
-                    {item.dataReprog ? (
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="date"
-                          className={`flex-1 p-1 border rounded ${
-                            isAtrasado
-                              ? "text-red-500 border-red-200 bg-red-50"
-                              : item.dataReprog < item.dataEntrega
-                              ? "text-green-500 border-green-200 bg-green-50"
-                              : ""
-                          }`}
-                          value={item.dataReprog.toISOString().split("T")[0]}
-                          onChange={(e) =>
-                            handleUpdateReprog(
-                              item.id,
-                              new Date(e.target.value)
-                            )
-                          }
-                        />
-                        <button
-                          onClick={() => handleRemoveReprog(item.id)}
-                          className="p-1 text-red-500 hover:text-red-700"
-                          title="Remover reprogramação"
-                        >
-                          <FiX />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleAddReprog(item.id)}
-                        className="w-full p-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 flex items-center justify-center gap-2"
+                return (
+                  <tr key={item.id} className="hover:bg-gray-50">
+                    <td className="p-2 border text-center">{index + 1}</td>
+                    <td className="p-2 border">{item.bu}</td>
+                    <td className="p-2 border">{item.pcs}</td>
+                    <td className="p-2 border">{item.cliente}</td>
+                    <td className="p-2 border font-medium">{item.item}</td>
+                    <td className="p-2 border">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${STATUS_COLORS[currentStatus]}`}
                       >
-                        <FiRefreshCw size={14} />
-                        Reprogramar
-                      </button>
-                    )}
-                  </td>
-
-                  {generateDateColumns().map((date) => {
-                    const atividades = item.atividades.filter(
-                      (a) => date >= a.inicio && date <= a.fim
-                    );
-
-                    return (
-                      <td
-                        key={date.toString()}
-                        className="p-1 border align-top"
-                      >
-                        <div className="flex flex-col gap-1 min-h-[80px]">
-                          {atividades.map((atividade, idx) => (
-                            <div
-                              key={idx}
-                              className="p-2 text-xs rounded flex items-start"
-                              style={{
-                                backgroundColor: AREA_COLORS[atividade.area],
-                                color:
-                                  atividade.area === "Corte"
-                                    ? "white"
-                                    : "black",
-                              }}
-                            >
-                              <FiTool
-                                className="mr-1 flex-shrink-0"
-                                size={12}
-                              />
-                              <span className="truncate">{atividade.nome}</span>
-                            </div>
-                          ))}
+                        {STATUS_LABELS[currentStatus]}
+                      </span>
+                    </td>
+                    <td className="p-2 border">
+                      {formatDate(item.dataEntrega)}
+                    </td>
+                    <td className="p-2 border">
+                      {item.dataReprog ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="date"
+                            className={`flex-1 p-1 border rounded ${
+                              isAtrasado
+                                ? "text-red-500 border-red-200 bg-red-50"
+                                : item.dataReprog < item.dataEntrega
+                                ? "text-green-500 border-green-200 bg-green-50"
+                                : ""
+                            }`}
+                            value={item.dataReprog.toISOString().split("T")[0]}
+                            onChange={(e) =>
+                              handleUpdateReprog(
+                                item.id,
+                                new Date(e.target.value)
+                              )
+                            }
+                          />
+                          <button
+                            onClick={() => handleRemoveReprog(item.id)}
+                            className="p-1 text-red-500 hover:text-red-700"
+                            title="Remover reprogramação"
+                          >
+                            <FiX />
+                          </button>
                         </div>
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                      ) : (
+                        <button
+                          onClick={() => handleAddReprog(item.id)}
+                          className="w-full p-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 flex items-center justify-center gap-2"
+                        >
+                          <FiRefreshCw size={14} />
+                          Reprogramar
+                        </button>
+                      )}
+                    </td>
+
+                    {generateDateColumns().map((date) => {
+                      const atividades = item.atividades.filter(
+                        (a) => date >= a.inicio && date <= a.fim
+                      );
+
+                      return (
+                        <td
+                          key={date.toString()}
+                          className="p-1 border align-top"
+                        >
+                          <div className="flex flex-col gap-1 min-h-[80px]">
+                            {atividades.map((atividade, idx) => (
+                              <div
+                                key={idx}
+                                className="p-2 text-xs rounded flex items-start"
+                                style={{
+                                  backgroundColor: AREA_COLORS[atividade.area],
+                                  color:
+                                    atividade.area === "Corte"
+                                      ? "white"
+                                      : "black",
+                                }}
+                              >
+                                <FiTool
+                                  className="mr-1 flex-shrink-0"
+                                  size={12}
+                                />
+                                <span className="truncate">
+                                  {atividade.nome}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        /* Tabela por Processo (vazia por enquanto) */
+        <div className="bg-gray-100 p-8 rounded-lg text-center">
+          <h3 className="text-lg font-medium mb-2">
+            Visualização por Processo
+          </h3>
+          <p className="text-gray-600">
+            Esta visualização será implementada em breve
+          </p>
+        </div>
+      )}
     </div>
   );
 }
