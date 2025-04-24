@@ -6,12 +6,9 @@ export default function App() {
   return (
     <div className="flex min-h-screen bg-valmet-gray">
       <Sidebar />
-      <div className="flex-1 transition-all duration-300 overflow-auto">
+      <div className="flex-1 ml-16 transition-all duration-300">
         <Header />
-        <main className="p-6" style={{ 
-          marginLeft: '4rem', // Largura da sidebar colapsada
-          transition: 'margin-left 0.3s ease'
-        }}>
+        <main className="p-6 overflow-x-hidden">
           <Outlet />
         </main>
       </div>
